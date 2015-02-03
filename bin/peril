@@ -1,0 +1,84 @@
+#!/usr/bin/env node
+
+var peril = require( '../peril.js' );
+var rootindex, root, args, target, command, method;
+
+// First, let's find if we specified a different root
+rootindex = 1 + Number(
+  process.argv._$fold( function( b, e, i ) {if('--root'===e){return i;}return b;}, -1 )
+);
+
+if( rootindex == 0 ) {
+  root = '/';
+  args = process.argv.slice( 2 );
+} else if ( rootindex >= process.argv.length ) {
+  root = '/';
+  args = process.argv.slice( 2, process.argv.length - 1 );
+} else {
+  root = process.argv[ rootindex ];
+  args = process.argv.slice( 2, rootindex - 1 ).concat ( process.argv.slice( rootindex + 1 ) );
+}
+
+/*
+  After that bit of init, root should point to the directory in which we'll find the etc/peril
+  directory and args is an array of arguments with the --root <path> bits removed.
+
+*/
+
+target = args.shift(); if( target ) { target = target.toLowerCase(); }
+command = args.shift(); if( command ) { command = command.toLowerCase(); }
+
+var valid_commands = {
+  'profile': [ 'list', 'create', 'destroy', 'ref' ],
+  'pointer': [ 'list', 'link', 'unlink', 'ref' ],
+  'file': [ 'add', 'remove', 'ref' ]
+};
+
+// Check to see target is one of profile, pointer or list. If not return a usage error
+if( ! valid_commands[ target ] ) {
+  usage();
+} else {
+  if( ! valid_commands[ target ]._$any( function( e ) { return e===command; } ) ) {
+    usage();
+  }
+}
+
+method = [ target, command ].join( '_' );
+
+new peril( { root: root }, function( err, self ) {
+  self[ method ] && self[ method ].apply( self, args.concat( __callback ) );
+  function __callback ( err, data ) {
+    if( err ) { return process.stderr.write( err.toString() + '\n' ); }
+    if( data ) { process.stdout.write( data + '\n' ); }
+  };
+} );
+
+function usage() {
+  process.stderr.write( "Usage: " + process.argv[1].split('/').pop() +
+                        " <target> <command> [ <options> ] [ --root <path> ]\n" +
+                        "where:\n" +
+                        "  target - one of profile, pointer, file\n" +
+                        "  command - one of list, create, destroy, add, etc.\n" );
+  process.exit(1);
+}
+
+/*
+  profile
+  profile pointer
+  file
+
+  peril profile list
+  peril profile create <profile name>
+  peril profile destroy <profile name>
+  peril profile ref <profile name>
+
+  peril pointer link <pointer name> <profile name>
+  peril pointer unlink <pointer name>
+  peril pointer ref <pointer name>
+
+  peril file add <path>
+  peril file remove <path>
+  peril file ref <path>
+
+  --root <path>
+*/

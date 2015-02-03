@@ -1,0 +1,34 @@
+{
+  "name": "peril",
+  "version": "0.0.1",
+  "description": "Curate collections of config files in /etc using symbolic links",
+  "main": "./peril.js",
+  "maintainers": [
+    {
+      "name": "Meadhbh Hamrick",
+      "email": "OhMeadhbh@gmail.com",
+      "web": "http://info.meadhbh.org/"
+    }
+  ],
+  "licenses": [
+    {
+      "type": "BSD",
+      "url": "https://github.com/OhMeadhbh/peril/raw/master/LICENSE"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OhMeadhbh/peril"
+  },
+  "dependencies": {
+    "sn-core": ">= 0.0.17"
+  },
+  "bin": {
+    "peril": "./bin/peril"
+  },
+  "directories": [
+    "test",
+    "bin"
+  ],
+  "keywords": [ "admin", "files", "symbolic links", "symlinks" ]
+}
