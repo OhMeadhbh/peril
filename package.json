@@ -1,6 +1,6 @@
 {
   "name": "peril",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Curate collections of config files in /etc using symbolic links",
   "main": "./peril.js",
   "maintainers": [
@@ -21,7 +21,7 @@
     "url": "https://github.com/OhMeadhbh/peril"
   },
   "dependencies": {
-    "sn-core": ">= 0.0.17"
+    "sn-core": ">= 0.0.18"
   },
   "bin": {
     "peril": "./bin/peril"
