@@ -38,7 +38,7 @@
 
     function __process_dirs( list ) {
       if( 0 == list.length ) {
-        return callback( null, profiles.join( '\n' ) );
+        return callback( null, profiles );
       }
       var current = list.shift();
       fs.lstat( this._root.concat( [ 'etc', 'peril', current ] ).join( '/' ), function( err, stats ) {
@@ -75,7 +75,7 @@
       if( err ) {
         return callback();
       }
-      console.log( 'rm -rf ' + path );
+
       var rm = spawn( 'rm', [ '-rf', path ] );
       rm.on( 'close', function( code ) {
         var err;
@@ -213,9 +213,17 @@
     }.bind(this) );
 
     function _build_final_link() {
-//      fs.unlink( sour );
-      console.log( "ln -s " + sourcepath );
-      callback();
+      var rmrf = spawn( 'rm', [ (statdata.isDirectory()?'-rf':'-f'), sourcepath ] );
+      rmrf.on( 'close', function( code ) {
+        if( 0 !== code ) {
+          return callback( new Error( 'rm command returned non-zero code: ' + code ) );
+        }
+
+        fs.symlink( confpath + '/' + 'current' + sourcepath, sourcepath, function( err ) {
+          if( err ) { return callback( err ); }
+          return callback();
+        } );
+      } );
     }
 
     function __copy_to_path( paths ) {
@@ -224,7 +232,7 @@
       var currentpath = [ confpath, current ].join( '/' ) + sourcepath;
       var currentdir = currentpath.split( '/' ).slice(0,-1).join('/');
       fs.stat( currentdir, function( err, data ) {
-        if( err && ( 'ENOENT' !== err ) ) { return callback( err ); }
+        if( err && ( 'ENOENT' !== err.code ) ) { return callback( err ); }
         if( data && ( ! data.isDirectory() ) ) { return callback( new Error( 'eep' ) ); }
         if( err ) {
           var mkdir = spawn( 'mkdir', [ '-p', currentdir ] );
@@ -242,10 +250,8 @@
         var cp;
         if( statdata.isDirectory() ) {
           cp = spawn( 'cp', [ '-r', sourcepath, currentpath ] );
-          console.log( 'cp -r ' + sourcepath + ' ' + currentpath );
         } else {
           cp = spawn( 'cp', [ '-P', sourcepath, currentpath ] );
-          console.log( 'cp -P ' + sourcepath + ' ' + currentpath );
         }
         cp.on( 'close', function( code ) {
           if( 0 !== code ) {
